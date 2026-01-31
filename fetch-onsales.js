@@ -98,14 +98,19 @@ async function fetchWithRetry(url, retries = 3) {
                 continue;
             }
             
+            if (response.status === 401) {
+                throw new Error(`HTTP 401 - Invalid API Key`);
+            }
+            
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const text = await response.text().catch(() => 'No body');
+                throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
             }
             
             return await response.json();
         } catch (error) {
             if (attempt === retries) throw error;
-            console.log(`   ⚠️ Attempt ${attempt} failed, retrying...`);
+            console.log(`   ⚠️ Attempt ${attempt} failed: ${error.message}`);
             await sleep(1000 * attempt);
         }
     }
@@ -400,7 +405,28 @@ function generateOutput(onsales) {
 
 async function main() {
     if (!API_KEY) {
-        console.error('❌ TM_API_KEY environment variable not set');
+        console.error('❌ TM_API_KEY environment variable not set!');
+        console.error('   Make sure to add TM_API_KEY to GitHub Secrets');
+        process.exit(1);
+    }
+    
+    console.log(`🔑 API Key loaded: ${API_KEY.substring(0, 4)}...${API_KEY.substring(API_KEY.length - 4)}`);
+    
+    // Test API connection first
+    console.log('🔗 Testing API connection...');
+    try {
+        const testUrl = `${BASE_URL}?apikey=${API_KEY}&size=1&countryCode=US`;
+        const testResponse = await fetch(testUrl);
+        if (!testResponse.ok) {
+            const errorText = await testResponse.text();
+            console.error(`❌ API test failed: HTTP ${testResponse.status}`);
+            console.error(`   Response: ${errorText.substring(0, 500)}`);
+            process.exit(1);
+        }
+        const testData = await testResponse.json();
+        console.log(`✅ API connection successful! Found ${testData.page?.totalElements || 0} total events`);
+    } catch (error) {
+        console.error(`❌ API test failed: ${error.message}`);
         process.exit(1);
     }
     
