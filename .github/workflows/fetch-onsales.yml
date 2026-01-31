@@ -1,0 +1,33 @@
+name: Fetch TM Onsales V15
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-onsales:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Run Onsale Finder V15
+        env:
+          TM_API_KEY: ${{ secrets.TM_API_KEY }}
+        run: node fetch-onsales.js
+      
+      - name: Commit and push results
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add onsales.json onsales.min.json stats.json
+          git diff --staged --quiet || git commit -m "Update onsales - $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
