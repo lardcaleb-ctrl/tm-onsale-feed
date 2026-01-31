@@ -253,11 +253,13 @@ async function runFullScan() {
     console.log('🚀 TM ONSALE FINDER V15 - Starting full scan...\n');
     
     // Calculate date range: Today + 14 days
+    // TM API requires format: YYYY-MM-DDTHH:mm:ssZ (no milliseconds!)
     const now = new Date();
-    const onsaleStart = now.toISOString();
-    const onsaleEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const formatDate = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const onsaleStart = formatDate(now);
+    const onsaleEnd = formatDate(new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000));
     
-    console.log(`📅 Onsale window: ${onsaleStart.split('T')[0]} to ${onsaleEnd.split('T')[0]}`);
+    console.log(`📅 Onsale window: ${onsaleStart} to ${onsaleEnd}`);
     console.log(`🗺️  Regions: ${US_STATES.length} US states + ${CA_PROVINCES.length} CA provinces`);
     console.log(`🎭 Segments: ${SEGMENTS.map(s => s.name).join(', ')}\n`);
     
