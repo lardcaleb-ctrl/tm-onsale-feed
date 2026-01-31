@@ -1,24 +1,30 @@
 {
-  "generated": "2026-01-31T22:35:46.379Z",
-  "runtime": "1072s",
-  "totalOnsales": 0,
-  "totalQueries": 0,
-  "totalEvents": 0,
-  "uniqueEvents": 0,
+  "generated": "2026-01-31T22:49:48.329Z",
+  "runtime": "308s",
+  "totalOnsales": 1781,
+  "totalQueries": 548,
+  "totalEvents": 66678,
+  "uniqueEvents": 1176,
   "byType": {
-    "PUBLIC": 0,
-    "ARTIST": 0,
-    "CARD": 0,
-    "VENUE": 0,
-    "VIP": 0,
-    "PROMO": 0,
-    "OTHER": 0
+    "PUBLIC": 892,
+    "ARTIST": 91,
+    "CARD": 79,
+    "VENUE": 41,
+    "VIP": 55,
+    "PROMO": 24,
+    "OTHER": 599
   },
-  "bySegment": {},
-  "errors": 320,
+  "bySegment": {
+    "Music": 551,
+    "Miscellaneous": 96,
+    "Sports": 746,
+    "Arts & Theatre": 386,
+    "Film": 2
+  },
+  "errors": 0,
   "summary": {
-    "today": 0,
-    "tomorrow": 0,
-    "thisWeek": 0
+    "today": 69,
+    "tomorrow": 121,
+    "thisWeek": 1375
   }
 }
