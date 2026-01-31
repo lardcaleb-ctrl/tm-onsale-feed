@@ -1,0 +1,12 @@
+{
+  "name": "tm-onsale-feed",
+  "version": "15.0.0",
+  "description": "Ticketmaster Onsale Finder - ShowsOnSale-level coverage",
+  "main": "fetch-onsales.js",
+  "scripts": {
+    "start": "node fetch-onsales.js",
+    "test": "echo \"No tests yet\""
+  },
+  "author": "GhostCart",
+  "license": "MIT"
+}
