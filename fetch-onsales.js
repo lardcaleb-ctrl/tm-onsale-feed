@@ -339,63 +339,111 @@ async function runFullScan() {
 }
 
 // ============================================================
-// OUTPUT GENERATION
+// OUTPUT GENERATION - GHOSTCART COMPATIBLE FORMAT
 // ============================================================
 
 function generateOutput(onsales) {
     // Sort by sale start time
     onsales.sort((a, b) => new Date(a.saleStart) - new Date(b.saleStart));
     
-    // Group by day
+    // Convert to GhostCart format
+    const convertToGhostCartFormat = (sale) => ({
+        eventId: sale.eventId,
+        eventName: sale.eventName,
+        eventDate: sale.eventDate,
+        eventTime: sale.eventTime,
+        url: sale.url,
+        // GhostCart expects these field names:
+        venueName: sale.venue,
+        venueCity: sale.city,
+        venueState: sale.state,
+        venueCountry: sale.country,
+        segment: sale.segment,
+        genre: sale.genre,
+        subGenre: sale.subGenre,
+        priceMin: sale.priceMin,
+        priceMax: sale.priceMax,
+        currency: sale.currency,
+        // Onsale-specific fields (GhostCart naming)
+        onsaleType: sale.saleType === 'PUBLIC' ? 'public' : 'presale',
+        onsaleName: sale.saleName,
+        onsaleCategory: sale.saleCategory,
+        onsaleStart: sale.saleStart,
+        onsaleEnd: sale.saleEnd,
+        // Keep original fields too for compatibility
+        saleType: sale.saleType,
+        saleName: sale.saleName,
+        saleCategory: sale.saleCategory,
+        saleStart: sale.saleStart,
+        saleEnd: sale.saleEnd
+    });
+    
+    // Get date boundaries
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    // Categorize onsales by when they occur
+    const today = [];
+    const tomorrow = [];
+    const upcoming = [];
+    
+    for (const sale of onsales) {
+        const saleDate = sale.saleStart.split('T')[0];
+        const saleDateObj = new Date(sale.saleStart);
+        const converted = convertToGhostCartFormat(sale);
+        
+        if (saleDate === todayStr) {
+            today.push(converted);
+        } else if (saleDate === tomorrowStr) {
+            tomorrow.push(converted);
+        } else if (saleDateObj <= weekFromNow) {
+            upcoming.push(converted);
+        } else {
+            upcoming.push(converted); // Include all future onsales
+        }
+    }
+    
+    // Also create grouped views
     const byDay = {};
     for (const sale of onsales) {
         const day = sale.saleStart.split('T')[0];
         if (!byDay[day]) byDay[day] = [];
-        byDay[day].push(sale);
+        byDay[day].push(convertToGhostCartFormat(sale));
     }
     
     // Group by category
     const byCategory = {
-        ARTIST: onsales.filter(s => s.saleCategory === 'ARTIST'),
-        CARD: onsales.filter(s => s.saleCategory === 'CARD'),
-        VENUE: onsales.filter(s => s.saleCategory === 'VENUE'),
-        VIP: onsales.filter(s => s.saleCategory === 'VIP'),
-        PROMO: onsales.filter(s => s.saleCategory === 'PROMO'),
-        PUBLIC: onsales.filter(s => s.saleCategory === 'PUBLIC'),
-        OTHER: onsales.filter(s => s.saleCategory === 'OTHER')
+        ARTIST: onsales.filter(s => s.saleCategory === 'ARTIST').map(convertToGhostCartFormat),
+        CARD: onsales.filter(s => s.saleCategory === 'CARD').map(convertToGhostCartFormat),
+        VENUE: onsales.filter(s => s.saleCategory === 'VENUE').map(convertToGhostCartFormat),
+        VIP: onsales.filter(s => s.saleCategory === 'VIP').map(convertToGhostCartFormat),
+        PROMO: onsales.filter(s => s.saleCategory === 'PROMO').map(convertToGhostCartFormat),
+        PUBLIC: onsales.filter(s => s.saleCategory === 'PUBLIC').map(convertToGhostCartFormat),
+        OTHER: onsales.filter(s => s.saleCategory === 'OTHER').map(convertToGhostCartFormat)
     };
-    
-    // Group by segment
-    const bySegment = {};
-    for (const sale of onsales) {
-        const seg = sale.segment || 'Unknown';
-        if (!bySegment[seg]) bySegment[seg] = [];
-        bySegment[seg].push(sale);
-    }
     
     return {
         generated: new Date().toISOString(),
-        version: 'V15',
+        version: 'V15-GhostCart',
+        // GhostCart expects these top-level arrays:
+        today: today,
+        tomorrow: tomorrow,
+        upcoming: upcoming,
+        // Stats
         stats: {
             totalOnsales: onsales.length,
+            todaysOnsales: today.length,
+            tomorrowsOnsales: tomorrow.length,
             totalQueries: stats.totalQueries,
             totalEvents: stats.totalEvents,
             uniqueEvents: new Set(onsales.map(o => o.eventId)).size,
             byType: stats.byType,
-            bySegment: Object.fromEntries(
-                Object.entries(bySegment).map(([k, v]) => [k, v.length])
-            ),
             errors: stats.errors.length
         },
-        summary: {
-            today: byDay[new Date().toISOString().split('T')[0]]?.length || 0,
-            tomorrow: byDay[new Date(Date.now() + 86400000).toISOString().split('T')[0]]?.length || 0,
-            thisWeek: onsales.filter(s => {
-                const d = new Date(s.saleStart);
-                return d <= new Date(Date.now() + 7 * 86400000);
-            }).length
-        },
-        onsales: onsales,
+        // Additional groupings
         byDay: byDay,
         byCategory: byCategory
     };
@@ -449,8 +497,7 @@ async function main() {
         fs.writeFileSync('stats.json', JSON.stringify({
             generated: new Date().toISOString(),
             runtime: Math.round((Date.now() - startTime) / 1000) + 's',
-            ...output.stats,
-            summary: output.summary
+            ...output.stats
         }, null, 2));
         
         // Print summary
@@ -463,9 +510,9 @@ async function main() {
         console.log(`📝 Total Queries: ${stats.totalQueries}`);
         console.log(`🎫 Total Events: ${stats.totalEvents}`);
         console.log(`🎯 Total Onsales: ${stats.totalOnsales}`);
-        console.log(`📅 Today: ${output.summary.today}`);
-        console.log(`📅 Tomorrow: ${output.summary.tomorrow}`);
-        console.log(`📅 This Week: ${output.summary.thisWeek}`);
+        console.log(`📅 Today: ${output.today.length}`);
+        console.log(`📅 Tomorrow: ${output.tomorrow.length}`);
+        console.log(`📅 This Week: ${output.today.length + output.tomorrow.length + output.upcoming.length}`);
         console.log('\n📊 By Sale Type:');
         console.log(`   PUBLIC:  ${stats.byType.PUBLIC}`);
         console.log(`   ARTIST:  ${stats.byType.ARTIST}`);
