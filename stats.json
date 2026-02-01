@@ -1,12 +1,12 @@
 {
-  "generated": "2026-02-01T09:07:32.719Z",
-  "runtime": "298s",
-  "totalOnsales": 1786,
+  "generated": "2026-02-01T14:00:17.330Z",
+  "runtime": "274s",
+  "totalOnsales": 1788,
   "totalQueries": 547,
   "totalEvents": 66132,
-  "uniqueEvents": 1181,
+  "uniqueEvents": 1183,
   "byType": {
-    "PUBLIC": 899,
+    "PUBLIC": 901,
     "ARTIST": 91,
     "CARD": 79,
     "VENUE": 41,
@@ -17,14 +17,14 @@
   "bySegment": {
     "Music": 551,
     "Sports": 752,
-    "Arts & Theatre": 385,
+    "Arts & Theatre": 387,
     "Miscellaneous": 96,
     "Film": 2
   },
   "errors": 0,
   "summary": {
-    "today": 121,
+    "today": 123,
     "tomorrow": 251,
-    "thisWeek": 1380
+    "thisWeek": 1382
   }
 }
