@@ -1,20 +1,20 @@
 {
-  "generated": "2026-02-06T18:11:17.444Z",
-  "runtime": "299s",
-  "totalOnsales": 3413,
-  "todaysOnsales": 1512,
-  "tomorrowsOnsales": 33,
+  "generated": "2026-02-06T21:08:50.027Z",
+  "runtime": "321s",
+  "totalOnsales": 3495,
+  "todaysOnsales": 1543,
+  "tomorrowsOnsales": 34,
   "totalQueries": 555,
-  "totalEvents": 68014,
-  "uniqueEvents": 2064,
+  "totalEvents": 68112,
+  "uniqueEvents": 2156,
   "byType": {
-    "PUBLIC": 1621,
-    "ARTIST": 79,
-    "CARD": 193,
-    "VENUE": 53,
+    "PUBLIC": 1712,
+    "ARTIST": 70,
+    "CARD": 192,
+    "VENUE": 48,
     "VIP": 243,
-    "PROMO": 50,
-    "OTHER": 1174
+    "PROMO": 42,
+    "OTHER": 1188
   },
   "errors": 0
 }
